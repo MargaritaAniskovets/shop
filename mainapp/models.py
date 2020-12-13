@@ -1,3 +1,4 @@
+import sys
 from PIL import Image
 from django.conf import settings
 from django.contrib.contenttypes import fields
@@ -5,6 +6,9 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
+from io import BytesIO
 
 User = get_user_model()
 settings.AUTH_USER_MODEL
@@ -69,15 +73,29 @@ class Product(models.Model):
         return self.title
 
     def save(self, *args,**kwargs):
+        # image = self.image
+        # img = Image.open(image)
+        # min_height, min_width = self.MIN_RESOLUTION
+        # max_height, max_width = self.MAX_RESOLUTION
+        # if img.height < min_height or img.width < min_width:
+        #     raise MinResolutionErrorException('Разрешение изображения меньше минимального')
+        # if img.height > max_height or img.width > max_width:
+        #     raise MaxResolutionErrorException('Разрешение изображения больше максимального')
         image = self.image
         img = Image.open(image)
-        min_height, min_width = self.MIN_RESOLUTION
-        max_height, max_width = self.MAX_RESOLUTION
-        if img.height < min_height or img.width < min_width:
-            raise MinResolutionErrorException('Разрешение изображения меньше минимального')
-        if img.height > max_height or img.width > max_width:
-            raise MaxResolutionErrorException('Разрешение изображения больше максимального')
-        return image
+        new_img = img.convert('RGB')
+        resized_new_img = new_img.resize((200, 200), Image.ANTIALIAS)
+        filestream = BytesIO()
+        resized_new_img.save(filestream, 'JPEG', qwality=90)
+        filestream.seek(0)
+        name = '{}.{}'.format(*self.image.name.split('.'))
+        # print(self.image.name, name)
+        self.image = InMemoryUploadedFile(
+            filestream, 'ImageField', name, 'jpeg/image', sys.getsizeof(filestream),None
+        )
+        # new_img.thumbnail()
+
+        super().save(*args, **kwargs)
 
 
 class Notebook(Product):
