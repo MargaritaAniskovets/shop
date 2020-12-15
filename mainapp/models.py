@@ -134,13 +134,3 @@ class Customer(models.Model):
 
     def __str__(self):
         return 'Покупатель: {}{}'.format(self.user.first_name,self.user.last_name)
-
-# class Specifications(models.Model):
-#
-#     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-#     object_id = models.PositiveBigIntegerField()
-#     name = models.CharField(max_length=255, verbose_name='Имя товара для характеристик')
-#
-#     def __str__(self):
-#         return 'Характеристики для товара: {}{}'.format(self.name)
-
